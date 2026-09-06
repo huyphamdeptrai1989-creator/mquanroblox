@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mquan AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #131314;
+      --sidebar-bg: #1e1f20;
+      --input-bg: #1e1f20;
+      --input-hover: #282a2c;
+      --card-bg: #1e1f20;
+      --card-hover: #282a2c;
+      --text-main: #e3e3e3;
+      --text-sub: #8e918f;
+      --accent-blue: #a8c7fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+    }
+
+    body {
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    aside {
+      width: 250px;
+      min-width: 250px;
+      height: 100%;
+      background-color: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1rem 0.75rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+      z-index: 50;
+    }
+
+    @media (max-width: 768px) {
+      aside {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: -260px;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+      }
+      aside.open {
+        left: 0;
+      }
+    }
+
+    .sidebar-top { display: flex; flex-direction: column; gap: 1.25rem; }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0 0.5rem;
+    }
+
+    .mquan-sparkle {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z'/%3E%3C/svg%3E") no-repeat center / contain;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z'/%3E%3C/svg%3E") no-repeat center / contain;
+    }
+
+    .brand span {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #e3e3e3;
+    }
+
+    .new-chat-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      background: #131314;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      padding: 0.65rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .new-chat-btn:hover { background: #282a2c; }
+    .chat-history { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.25rem; }
+    .history-title { font-size: 0.72rem; color: var(--text-sub); padding: 0 0.5rem; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 500; }
+    
+    .history-item {
+      padding: 0.55rem 0.7rem;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-main); }
+
+    .sidebar-bottom { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    
+    .api-key-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: none;
+      border: none;
+      color: var(--accent-blue);
+      font-size: 0.8rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .api-key-btn:hover { background: rgba(255, 255, 255, 0.05); }
+
+    main {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg);
+    }
+
+    .top-nav {
+      height: 56px;
+      min-height: 56px;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: none;
+    }
+    @media (max-width: 768px) { .menu-toggle { display: block; } }
+
+    .model-selector {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .model-selector span.active { color: #e3e3e3; font-weight: 600; }
+
+    .chat-container {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 1.5rem 1.5rem 140px 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .chat-inner { width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .welcome-screen { display: flex; flex-direction: column; gap: 1.75rem; margin-top: 2vh; }
+    .greeting h2 {
+      font-size: 2.5rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      background: linear-gradient(74deg, #4285f4 0%, #9b72cb 30%, #d96570 50%, #4285f4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+    .greeting h3 { font-size: 2.5rem; font-weight: 500; letter-spacing: -0.02em; color: #444746; line-height: 1.2; }
+    @media (max-width: 600px) { .greeting h2, .greeting h3 { font-size: 1.85rem; } }
+
+    .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
+    .suggestion-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 1.15rem 0.9rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 145px;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .suggestion-card:hover { background: var(--card-hover); border-color: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+    .card-text { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; }
+    .card-icon { align-self: flex-end; width: 32px; height: 32px; background: #131314; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+
+    .message-row { display: flex; gap: 1rem; width: 100%; }
+    .message-row.user { justify-content: flex-end; }
+    .user-bubble { background: #282a2c; color: var(--text-main); padding: 0.8rem 1.15rem; border-radius: 18px; max-width: 80%; font-size: 0.92rem; line-height: 1.5; }
+
+    .mquan-response { display: flex; gap: 0.85rem; width: 100%; }
+    .mquan-avatar { width: 28px; height: 28px; flex-shrink: 0; margin-top: 3px; }
+    .response-content { flex: 1; font-size: 0.92rem; line-height: 1.7; color: var(--text-main); white-space: pre-wrap; word-break: break-word; }
+
+    .input-wrapper {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, transparent 0%, var(--bg) 30%);
+      padding: 1rem 1.5rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pill-input {
+      width: 100%;
+      max-width: 760px;
+      background: var(--input-bg);
+      border-radius: 28px;
+      padding: 0.65rem 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .pill-input:focus-within { background: var(--input-hover); border-color: rgba(255, 255, 255, 0.18); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+
+    .pill-input textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.92rem;
+      resize: none;
+      height: 22px;
+      max-height: 120px;
+      padding: 2px 0;
+    }
+    .pill-input textarea::placeholder { color: var(--text-sub); }
+
+    .action-icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.05rem;
+      transition: all 0.2s;
+    }
+    .action-icon-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
+    .send-btn-mquan.active { color: var(--accent-blue); background: rgba(168, 199, 250, 0.12); }
+
+    .disclaimer { font-size: 0.72rem; color: var(--text-sub); text-align: center; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-backdrop.active { opacity: 1; pointer-events: auto; }
+
+    .modal-card {
+      background: var(--sidebar-bg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+    .modal-card h3 { font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem; }
+    .modal-card input {
+      width: 100%;
+      background: #131314;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      color: white;
+      outline: none;
+      font-size: 0.85rem;
+    }
+    .modal-card input:focus { border-color: var(--accent-blue); }
+
+    .modal-btn-row { display: flex; justify-content: flex-end; gap: 0.65rem; }
+    .btn-cancel { background: transparent; border: none; color: var(--text-sub); padding: 0.5rem 1rem; cursor: pointer; font-size: 0.85rem; border-radius: 999px; }
+    .btn-save { background: #a8c7fa; color: #040e1b; border: none; padding: 0.5rem 1.3rem; border-radius: 999px; font-weight: 500; cursor: pointer; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-top">
+      <div class="brand">
+        <div class="mquan-sparkle"></div>
+        <span>mquan</span>
+      </div>
+
+      <button class="new-chat-btn" onclick="startNewChat()">
+        <span>+</span>
+        <span>Cuộc trò chuyện mới</span>
+      </button>
+
+      <div class="chat-history">
+        <div class="history-title">Gần đây</div>
+        <div class="history-item" onclick="setPrompt('Giải thích Trí tuệ Nhân tạo')">
+          <span>💬</span> Giải thích Trí tuệ Nhân tạo
+        </div>
+        <div class="history-item" onclick="setPrompt('Viết một bài thơ')">
+          <span>💬</span> Viết một bài thơ
+        </div>
+        <div class="history-item" onclick="setPrompt('Lên ý tưởng dự án')">
+          <span>💬</span> Lên ý tưởng dự án
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="api-key-btn" onclick="openKeyModal()">
+        <span>🔑</span> <span id="keyBtnText">Cài đặt API Key</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW -->
+  <main>
+    <div class="top-nav">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="model-selector">
+          <span class="active">mquan</span>
+          <span id="modelBadge" style="font-size: 0.78rem; color: #a8c7fa; background: rgba(168,199,250,0.1); padding: 2px 7px; border-radius: 6px;">3.0 FLASH</span>
+        </div>
+      </div>
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #a8c7fa; color: #040e1b; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+        M
+      </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-inner" id="chatInner">
+
+        <!-- MÀN HÌNH CHÀO MỪNG BAN ĐẦU -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="greeting">
+            <h2>Xin chào bạn</h2>
+            <h3>Tôi là mquan, hôm nay tôi có thể giúp gì cho bạn?</h3>
+          </div>
+
+          <div class="suggestion-grid">
+            <div class="suggestion-card" onclick="setPrompt('Hãy giải thích mô hình Transformer và GPT hoạt động thế nào cho người mới học.')">
+              <span class="card-text">Giải thích mô hình Transformer &amp; GPT dễ hiểu</span>
+              <div class="card-icon">🧠</div>
+            </div>
+
+            <div class="suggestion-card" onclick="setPrompt('Lên kế hoạch ôn thi hiệu quả trong 7 ngày cho học sinh.')">
+              <span class="card-text">Lên kế hoạch học tập 7 ngày hiệu quả</span>
+              <div class="card-icon">📅</div>
+            </div>
+
+            <div class="suggestion-card" onclick="setPrompt('Viết một bài thơ 4 câu ngắn truyền cảm hứng học tập.')">
+              <span class="card-text">Sáng tác thơ truyền cảm hứng</span>
+              <div class="card-icon">✍️</div>
+            </div>
+
+            <div class="suggestion-card" onclick="setPrompt('Gợi ý 3 ý tưởng lập trình dự án Python thú vị cho học sinh.')">
+              <span class="card-text">Ý tưởng dự án Python cho học sinh</span>
+              <div class="card-icon">💡</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="messagesList" style="display: flex; flex-direction: column; gap: 1.5rem;"></div>
+
+      </div>
+    </div>
+
+    <!-- KHUNG NHẬP VIÊN THUỐC -->
+    <div class="input-wrapper">
+      <div class="pill-input">
+        <textarea id="promptInput" rows="1" placeholder="Hỏi mquan bất kỳ điều gì..." oninput="autoResize(this)"></textarea>
+        <button class="action-icon-btn send-btn-mquan" id="sendBtn" onclick="handleSend()" title="Gửi">
+          ➤
+        </button>
+      </div>
+      <div class="disclaimer">
+        mquan AI có thể đưa ra thông tin không chính xác, hãy luôn kiểm tra lại các phản hồi quan trọng.
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL API KEY -->
+  <div class="modal-backdrop" id="keyModal">
+    <div class="modal-card">
+      <h3>🔑 Cài Đặt API Key</h3>
+      <p style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5;">
+        Dán mã <b>API Key miễn phí</b> từ Google AI Studio vào đây để kích hoạt bộ não cho <b>mquan AI</b>:
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="Dán mã AQ... hoặc AIza... vào đây">
+      <p style="font-size: 0.78rem; color: #a8c7fa;">
+        💡 Lấy mã miễn phí 100% tại: <br>
+        👉 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #a8c7fa; text-decoration: underline;">aistudio.google.com (Bấm vào đây)</a>
+      </p>
+      <div class="modal-btn-row">
+        <button class="btn-cancel" onclick="closeKeyModal()">Hủy</button>
+        <button class="btn-save" onclick="saveApiKey()">Lưu Khóa</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const promptInput = document.getElementById('promptInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const messagesList = document.getElementById('messagesList');
+    const chatContainer = document.getElementById('chatContainer');
+    const keyModal = document.getElementById('keyModal');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const keyBtnText = document.getElementById('keyBtnText');
+    const sidebar = document.getElementById('sidebar');
+    const modelBadge = document.getElementById('modelBadge');
+
+    let savedKey = localStorage.getItem('GEMINI_API_KEY') || '';
+    if (savedKey) {
+      apiKeyInput.value = savedKey;
+      keyBtnText.textContent = 'API Key: Đã kích hoạt ✅';
+    }
+
+    function toggleSidebar() { sidebar.classList.toggle('open'); }
+    function openKeyModal() { keyModal.classList.add('active'); apiKeyInput.focus(); }
+    function closeKeyModal() { keyModal.classList.remove('active'); }
+
+    function saveApiKey() {
+      const key = apiKeyInput.value.trim();
+      if (key) {
+        localStorage.setItem('GEMINI_API_KEY', key);
+        savedKey = key;
+        keyBtnText.textContent = 'API Key: Đã kích hoạt ✅';
+        closeKeyModal();
+        alert('Đã kết nối API thành công!');
+      } else {
+        localStorage.removeItem('GEMINI_API_KEY');
+        savedKey = '';
+        keyBtnText.textContent = 'Cài đặt API Key';
+        closeKeyModal();
+      }
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+      if (el.value.trim().length > 0) {
+        sendBtn.classList.add('active');
+      } else {
+        sendBtn.classList.remove('active');
+      }
+    }
+
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    function setPrompt(text) {
+      promptInput.value = text;
+      autoResize(promptInput);
+      promptInput.focus();
+    }
+
+    function startNewChat() {
+      messagesList.innerHTML = '';
+      welcomeScreen.style.display = 'flex';
+      promptInput.value = '';
+      autoResize(promptInput);
+    }
+
+    // HÀM GỌI GEMINI CHUẨN XÁC VỚI HỖ TRỢ ĐẦY ĐỦ CHO ĐỊNH DẠNG KHÓA AQ. MỚI CỦA GOOGLE
+    async function queryGemini(promptText, apiKey) {
+      const cleanKey = apiKey.trim();
+
+      const candidateModels = [
+        'gemini-2.0-flash',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash',
+        'gemini-2.5-flash',
+        'gemini-3.0-flash',
+        'gemini-pro'
+      ];
+
+      const requestHeaders = {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': cleanKey
+      };
+
+      let lastError = null;
+
+      for (const m of candidateModels) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: requestHeaders,
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptText }] }]
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              return { text, modelName: m };
+            }
+          } else {
+            const errData = await res.json();
+            const errMsg = errData.error?.message || `Mã lỗi ${res.status}`;
+            if (res.status === 404 || errMsg.includes('not found')) {
+              lastError = errMsg;
+              continue;
+            } else {
+              throw new Error(`[Google Báo] ${errMsg} (Status: ${errData.error?.status || res.status})`);
+            }
+          }
+        } catch (e) {
+          if (e.message.startsWith('[Google Báo]')) {
+            throw e;
+          }
+          lastError = e.message;
+        }
+      }
+
+      try {
+        const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`;
+        const listRes = await fetch(listUrl, { headers: requestHeaders });
+        if (listRes.ok) {
+          const listJson = await listRes.json();
+          const found = listJson.models?.find(mod => 
+            mod.supportedGenerationMethods?.includes('generateContent') && 
+            mod.name.includes('gemini')
+          );
+          if (found) {
+            const dynamicUrl = `https://generativelanguage.googleapis.com/v1beta/${found.name}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+            const dynRes = await fetch(dynamicUrl, {
+              method: 'POST',
+              headers: requestHeaders,
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }]
+              })
+            });
+            if (dynRes.ok) {
+              const dynData = await dynRes.json();
+              return {
+                text: dynData.candidates?.[0]?.content?.parts?.[0]?.text || "Không có phản hồi.",
+                modelName: found.name.replace('models/', '')
+              };
+            }
+          }
+        } else {
+          const errList = await listRes.json();
+          throw new Error(`[Google Báo] ${errList.error?.message || 'Khóa API không hợp lệ'}`);
+        }
+      } catch (listErr) {
+        if (listErr.message.startsWith('[Google Báo]')) throw listErr;
+      }
+
+      throw new Error(lastError || 'Không thể kết nối với mô hình AI bằng khóa này.');
+    }
+
+    async function handleSend() {
+      const text = promptInput.value.trim();
+      if (!text) return;
+
+      if (!savedKey) {
+        openKeyModal();
+        return;
+      }
+
+      welcomeScreen.style.display = 'none';
+
+      const userRow = document.createElement('div');
+      userRow.className = 'message-row user';
+      userRow.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+      messagesList.appendChild(userRow);
+
+      promptInput.value = '';
+      autoResize(promptInput);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      const mquanRow = document.createElement('div');
+      mquanRow.className = 'mquan-response';
+      mquanRow.innerHTML = `
+        <div class="mquan-sparkle mquan-avatar"></div>
+        <div class="response-content">Đang suy nghĩ...</div>
+      `;
+      messagesList.appendChild(mquanRow);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      const contentBox = mquanRow.querySelector('.response-content');
+
+      try {
+        const result = await queryGemini(text, savedKey);
+        
+        if (result.modelName) {
+          modelBadge.textContent = result.modelName.replace('gemini-', '').toUpperCase();
+        }
+
+        contentBox.textContent = '';
+        let i = 0;
+        const speed = result.text.length > 500 ? 5 : 12;
+        while (i < result.text.length) {
+          contentBox.textContent = result.text.slice(0, i + 1);
+          i++;
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          await new Promise(r => setTimeout(r, speed));
+        }
+
+      } catch (err) {
+        contentBox.textContent = `❌ Lỗi: ${err.message}\n👉 Hãy thử bấm vào "Cài đặt API Key" để kiểm tra lại khóa của bạn.`;
+      }
+    }
+
+    function escapeHtml(string) {
+      return string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>
